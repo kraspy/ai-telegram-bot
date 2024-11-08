@@ -5,7 +5,7 @@ from ...common.models import BaseRequestModel, BaseQueryParamsModel
 # region Получить список услуг / конкретную услугу
 
 
-class ServicesQueryParams(BaseQueryParamsModel):
+class ServicesRequestQueryParams(BaseQueryParamsModel):
     '''
     Модель query-параметров для получения списка услуг или конкретной услуги.
 
@@ -26,7 +26,7 @@ class ServicesRequest(BaseRequestModel):
     - query: Query-параметры для фильтрации услуг.
     '''
 
-    query: ServicesQueryParams = Field(
+    query: ServicesRequestQueryParams = Field(
         default=...,
         description='Query параметры для получения списка услуг или конкретной услуги',
     )

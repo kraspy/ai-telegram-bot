@@ -1,5 +1,5 @@
 from .requests import (
-    ServicesQueryParams,
+    ServicesRequestQueryParams,
     ServicesRequest,
 )
 
@@ -8,7 +8,7 @@ from .responses import (
 )
 
 __all__ = [
-    'ServicesQueryParams',
+    'ServicesRequestQueryParams',
     'ServicesRequest',
     'ServicesResponse',
 ]
