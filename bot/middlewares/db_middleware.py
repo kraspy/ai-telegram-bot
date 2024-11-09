@@ -5,6 +5,8 @@ from database.database import Database
 
 
 class DbMiddleware(BaseMiddleware):
+    '''Middleware для добавления экземпляра базы данных в данные события.'''
+
     def __init__(self, db: Database):
         super().__init__()
         self.db = db
@@ -15,5 +17,7 @@ class DbMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
+        '''Добавляет db в данные и вызывает обработчик.'''
+
         data['db'] = self.db
         return await handler(event, data)
