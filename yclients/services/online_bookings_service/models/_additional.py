@@ -7,7 +7,7 @@ class Appointment(BaseModel):
     id: int
     services: list[int]
     staff_id: int
-    datetime: dt  # В формате ISO8601
+    datetime: str  # В формате ISO8601
     custom_fields: dict[str, str] | None = None
 
 
