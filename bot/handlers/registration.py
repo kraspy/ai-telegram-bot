@@ -20,6 +20,8 @@ from yclients.services.clients_service.models import (
     CreateClientRequest,
 )
 
+from ai.manager import AssistantManager
+
 router = Router()
 
 
@@ -194,6 +196,18 @@ async def complete_registration(
         await state.clear()
         return
 
+    assistant = AssistantManager(
+        db=db,
+        yclients=yclients,
+        user_id=message.from_user.id,  # type: ignore
+    )
+    thread_id = await assistant.initialize()
+
+    if not thread_id:
+        await message.answer(messages.REGISTRATION_ERROR)
+        await state.clear()
+        return
+
     await db.add_user(
         telegram_id=message.from_user.id,  # type: ignore
         name=name,
@@ -201,7 +215,7 @@ async def complete_registration(
         surname=surname,
         phone=phone,
         yclients_id=yclients_id,
-        thread_id=0,  # TODO: Тут будет ID потока OpenAI Assistants API
+        thread_id=thread_id,  # type: ignore
     )
 
     await message.answer(
