@@ -81,6 +81,7 @@ class AssistantManager:
         '''
         try:
             if self.assistant_id:
+                # Инициализация ассистента вынести за пределы try для сокращения вложенности
                 self.assistant = await self.client.beta.assistants.retrieve(assistant_id=self.assistant_id)
                 logger.info(f"Assistant {self.assistant_id} initialized successfully")
 
@@ -89,11 +90,13 @@ class AssistantManager:
                 self.thread_id = user_data['thread_id']
                 self.user_fullname = f'{user_data["surname"]} {user_data["name"]}'
                 self.user_phone = user_data['phone']
+                # Объединить асинхронные вызовы для уменьшения количества обращений к API
                 self.thread = await self.client.beta.threads.retrieve(thread_id=self.thread_id)
                 logger.info(f"Thread {self.thread_id} retrieved for user {self.user_id}")
             else:
                 self.thread = await self.client.beta.threads.create()
                 self.thread_id = self.thread.id
+                # Вынести обновление БД в отдельную функцию для лучшей читаемости
                 await self.db.update_user_thread_id(self.user_id, self.thread_id)
                 logger.info(f"New thread {self.thread_id} created for user {self.user_id}")
 
@@ -176,8 +179,9 @@ class AssistantManager:
         '''
         try:
             while True:
+                # Уменьшить задержку ожидания и добавить прерывание цикла после нескольких итераций для избегания бесконечного цикла
                 await bot.send_chat_action(chat_id=message.chat.id, action=ChatAction.TYPING)
-                await asyncio.sleep(2)
+                await asyncio.sleep(1.5)
                 run_status = await self.client.beta.threads.runs.retrieve(
                     thread_id=self.thread_id,  # type: ignore
                     run_id=self.run.id,  # type: ignore
@@ -195,7 +199,9 @@ class AssistantManager:
                 elif run_status.status in ('canceled', 'expired', 'failed'):
                     return 'Произошла ошибка при обработке вашего запроса.'
         except Exception as e:
-            logger.error(f"Error handling run for user {self.user_id}: {str(e)}")
+            logger.error(
+                f"Error handling run for user {self.user_id}, status: {getattr(run_status, 'status', 'unknown')}: {str(e)}"
+            )
             return 'Произошла ошибка при обработке вашего запроса.'
 
     async def handle_required_actions(self, required_action):
@@ -241,12 +247,14 @@ class AssistantManager:
 
             func = function_mapping.get(function_name)
             if func:
+                # Логирование вызовов функций для отладки
+                logger.debug(f"Calling function {function_name} with arguments {arguments}")
                 return await func(arguments)
             else:
                 logger.warning(f"Function {function_name} not implemented")
                 return f"Функция {function_name} не реализована."
         except Exception as e:
-            logger.error(f"Error calling function {function_name}: {str(e)}")
+            logger.error(f"Error calling function {function_name} with arguments {arguments}: {str(e)}")
             return f"Ошибка выполнения функции {function_name}"
 
     async def get_bookable_services(self, params):
